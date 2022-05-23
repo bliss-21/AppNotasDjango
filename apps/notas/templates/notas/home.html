@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<!--title-->
+{% block title %}Mis Notas{% endblock %}
+
+
+<!--css-->
+{% block css %}
+
+{% endblock %}
+
+<!--content-->
+{% block content %}
+    <div class="container m-5">
+
+        <div class="row m-5">
+
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-success col-2" data-bs-toggle="modal" data-bs-target="#modalCreateNote">
+                Crear Nota
+            </button>
+  
+
+        </div>
+
+        <div class="row row-cols-3 row-cols-md-3 g-4" id="notes" name="notes">
+
+            <div class="col">
+                <div class="card text-white bg-primary mb-3" >
+                    <div class="card-body">
+                        <div class="row">
+                            <h5 class="card-title">Primary card title</h5>
+                            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                    
+                        </div>
+                      
+                        <div class="row mt-2 ">
+                            <div class="btn-group justify-content-end" role="group" aria-label="Button group with nested dropdown">
+                                <div class="btn-group" role="group">
+                                  <button id="btnGroupDrop1" type="button" class="btn btn-primary rounded-circle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                                        <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                                    </svg>
+                                  </button>
+                                  <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                    <li><a class="dropdown-item" href="#">Dropdown link</a></li>
+                                    <li><a class="dropdown-item" href="#">Dropdown link</a></li>
+                                  </ul>
+                                </div>
+                              </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Modal CreateNote -->
+    <div class="modal fade" id="modalCreateNote" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+          
+                    <input type="text" class="h4" id="title" name="title">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="cleanNote()"></button>
+
+                </div>
+
+                <div class="modal-body">
+                    <textarea name="description" id="description" cols="30" rows="10"></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="cleanNote()">Close</button> -->
+                    <button type="button" class="btn btn-primary" onclick="postNote()">Agregar</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal UodateNote-->
+    <div class="modal fade" id="modalUpdateNote" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+          
+                    <input type="text" class="h4" id="title_update" name="title_update">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="cleanNote()"></button>
+
+                </div>
+
+                <div class="modal-body">
+                    <textarea name="description_update" id="description_update" cols="30" rows="10"></textarea>
+                </div>
+
+                <div class="modal-footer" id="modal-footer-update">
+                    <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="cleanNote()">Close</button> -->
+                    
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+  
+
+{% endblock %}
+
+<!--js-->
+{% block js %}
+
+<script>
+
+// Al cargar la pagina se ejecutara:
+$(document).ready(function(){
+    
+    getNotes(); 
+
+});
+
+function getNotes(){  
+
+    let notas = $("#notes");
+    $.ajax({
+            url : '/get_notes',
+            //data : data, 
+            method : 'get', //en este caso
+            dataType : 'json',
+            success : function(response){
+                //codigo de exito
+                if(response.OK)
+                {
+                    if(response.cant > 0)
+                    {
+                        contenido = "";
+                        response.data.forEach( obj => {
+                            contenido += `
+                            <div class="col" id="note_${obj.id}">
+                                <div class="card text-white bg-primary mb-3" >
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <h5 class="card-title">${obj.title}</h5>
+                                            <p class="card-text">${obj.description}</p>
+                                        </div>
+                                    
+                                        <div class="row mt-2 ">
+                                            <div class="btn-group justify-content-end" role="group" aria-label="Button group with nested dropdown">
+                                                <div class="btn-group" role="group">
+                                                <button id="btnGroupDrop1" type="button" class="btn btn-primary rounded-circle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                                                        <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                                                    </svg>
+                                                </button>
+                                                <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                                    <li>
+                                                        <button class="dropdown-item" onclick="openModalUpdateNote(${obj.id})">Editar</button>
+                                                    </li>
+                                                    <li>
+                                                        <button class="dropdown-item" onclick="archivedNote(${obj.id})">Archivar</button>
+                                                    </li>
+                                                    <li>
+                                                        <button class="dropdown-item" onclick="deleteNote(${obj.id})">Eliminar</button>
+                                                    </li>
+                                                </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                           
+
+                            `
+                        })
+
+                        notas.html(contenido);
+                    }
+                    else
+                    {
+                        notas.html("<h1>No tienes Notas Aun</h1>")
+                    }
+                }
+            },
+            error: function(error){
+                alert('error');
+            }
+    });
+}
+
+function cleanNote(){
+    setTimeout(function(){
+        $('#title').val('');
+        $('#description').val('');
+    },600);
+
+}
+
+function postNote(){
+    var data = { title : $('#title').val(), description : $('#description').val() };
+    $.ajax({
+            url : '/post_note',
+            data : JSON.stringify(data),
+            method : 'post', //en este caso
+            dataType : 'json',
+            success : function(response){
+                //codigo de exito
+                if(response.OK)
+                {
+                    cleanNote()
+                    $('#modalCreateNote').modal('hide');
+                    getNotes();
+                }
+                else
+                {
+                    alert(response.Message);
+                }
+
+            },
+            error: function(error){
+                //codigo error
+                alert('Error en postNote()')
+            }
+    });
+}
+
+function deleteNote(id){
+    
+    $.ajax({
+            url : '/delete_note/' + id,
+            method : 'get', //en este caso
+            dataType : 'json',
+            success : function(response){
+                //codigo de exito
+                if(response.OK)
+                {
+                    // cleanNote()
+                    // $('#modalCreateNote').modal('hide');
+                    // getNotes();
+                    $('#note_'+id).remove();
+                }
+                else
+                {
+                    alert(response.Message);
+                }
+
+            },
+            error: function(error){
+                //codigo error
+                alert('Error en postNote()')
+            }
+    });
+}
+
+function archivedNote(id){
+    
+    $.ajax({
+            url : '/archived_note/' + id,
+            method : 'get', //en este caso
+            dataType : 'json',
+            success : function(response){
+                //codigo de exito
+                if(response.OK)
+                {
+                    // cleanNote()
+                    // $('#modalCreateNote').modal('hide');
+                    // getNotes();
+                    $('#note_'+id).remove();
+                }
+                else
+                {
+                    alert(response.Message);
+                }
+
+            },
+            error: function(error){
+                //codigo error
+                alert('Error en postNote()')
+            }
+    });
+}
+
+function openModalUpdateNote(id){  
+    debugger;
+    let modalUpdate = new bootstrap.Modal(document.getElementById("modalUpdateNote"), {});
+    $.ajax({
+            url : '/get_note_by_id/'+ id,
+            //data : data, 
+            method : 'get', //en este caso
+            dataType : 'json',
+            success : function(response){
+                debugger;
+                //codigo de exito
+                if(response.OK)
+                {   
+                    modalUpdate.show();
+                    $('#title_update').val(response.data.title);
+                    $('#description_update').val(response.data.description);
+
+                    let button_update_footer_modal = `<button type="button" class="btn btn-primary" onclick="updateNote(${id})">Actualizar</button>`
+                    $('#modal-footer-update').html(button_update_footer_modal)
+                }
+            },
+            error: function(error){
+                alert('error');
+            }
+    });
+}
+
+function updateNote(id){
+    var data = { title : $('#title_update').val(), description : $('#description_update').val() };
+     
+    $.ajax({
+            url : '/update_note/'+id,
+            method : 'post', //en este caso
+            data : JSON.stringify(data),
+            dataType : 'json',
+            success : function(response){
+                //codigo de exito
+                if(response.OK)
+                {
+                    cleanNote()
+                    $('#modalUpdateNote').modal('hide');
+                    getNotes();
+                }
+                else
+                {
+                    alert(response.Message);
+                }
+
+            },
+            error: function(error){
+                //codigo error
+                alert('Error en postNote()')
+            }
+    });
+}
+
+</script>
+
+{% endblock %}
+
